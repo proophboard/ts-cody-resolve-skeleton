@@ -1,0 +1,17 @@
+{
+    "extends": ["tslint:recommended", "tslint-config-prettier"],
+    "rules": {
+        "interface-name": [true, "never-prefix"],
+        "indent": [true, "spaces", 4],
+        "object-literal-sort-keys": false,
+        "variable-name": [false],
+        "jsx-no-lambda": false,
+        "no-string-literal": false,
+        "ordered-imports": false
+    },
+    "linterOptions": {
+        "exclude": [
+            "node_modules/"
+        ]
+    }
+}
