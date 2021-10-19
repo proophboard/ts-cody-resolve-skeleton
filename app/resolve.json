@@ -1,70 +1,9 @@
 {
   "aggregates": {
-    "Building": {
-      "aggregateType": "Building",
-      "eventMapLink": "https://app.prooph-board.com/inspectio/board/3fc5479e-cf3c-459a-96fd-5b62d002f843?cells=buTwEKKNLBBo6WAERYN1Gn&clicks=1",
-      "aggregateIdentifier": "buildingId",
-      "eventStream": "building_stream",
-      "aggregateCollection": "building",
-      "multiStoreMode": "mode_e_s",
-      "events": [
-        "BUILDING_ADDED"
-      ]
-    }
   },
   "commands": {
-    "AddBuilding": {
-      "commandName": "AddBuilding",
-      "aggregateType": "Building",
-      "eventMapLink": "https://app.prooph-board.com/inspectio/board/3fc5479e-cf3c-459a-96fd-5b62d002f843?cells=9bJ5Y7yuBcfWyei7i2ZSDC&clicks=1",
-      "createAggregate": true,
-      "schema": {
-        "type": "object",
-        "properties": {
-          "buildingId": {
-            "$ref": "#/definitions/BuildingId",
-            "title": "Building Id"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          }
-        },
-        "required": [
-          "buildingId",
-          "name"
-        ],
-        "additionalProperties": false,
-        "title": "Add Building"
-      }
-    }
   },
   "events": {
-    "BUILDING_ADDED": {
-      "eventName": "BUILDING_ADDED",
-      "aggregateType": "Building",
-      "eventMapLink": "https://app.prooph-board.com/inspectio/board/3fc5479e-cf3c-459a-96fd-5b62d002f843?cells=tF2ZuZCXsdQMhRmRXydfuW&clicks=1",
-      "public": false,
-      "schema": {
-        "type": "object",
-        "properties": {
-          "buildingId": {
-            "$ref": "#/definitions/BuildingId",
-            "title": "Building Id"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          }
-        },
-        "required": [
-          "buildingId",
-          "name"
-        ],
-        "additionalProperties": false,
-        "title": "Building Added"
-      }
-    }
   },
   "queries": {},
   "sagas": [],
