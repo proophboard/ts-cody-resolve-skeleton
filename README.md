@@ -22,8 +22,8 @@ $ ./dev.sh
 
 It's split into two main parts:
 
-1.) The reSolve app is found in `app/src`
-2.) Cody server `cody/src` & specific Cody hooks in `cody/hooks`
+1. The reSolve app is found in `app/src`
+2. Cody server is found in `cody/src` & specific Cody hooks are in `cody/hooks`
 
 ### Install Dependencies
 
@@ -40,4 +40,4 @@ Cody will say hello and explain you everything.
 
 ## Open the app
 
-[http://localhost:3000/](http://localhost:3000/)
+Open the app at [http://localhost:3000/](http://localhost:3000/)
