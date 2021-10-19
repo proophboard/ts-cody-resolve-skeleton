@@ -4,7 +4,7 @@ import { UiRouteParams } from './utils/metadata';
 export type JSONSchema = any;
 
 
-export interface EngineConfig {
+export interface ResolveConfig {
     aggregates: {
         [aggregateType: string]: {
             aggregateType: string,

@@ -20,3 +20,33 @@ export function readFile(filePath: string): string | CodyResponse {
 
     return fs.readFileSync(filePath).toString();
 }
+
+export function writeFile(filePath: string, content: string): void {
+    fs.writeFileSync(filePath, content);
+}
+
+
+export function readFileToJson<T>(filePath: string, validate?: (jsonContent: T) => T | CodyResponse): T | CodyResponse {
+    if(!fs.existsSync(filePath)) {
+        return {
+            cody: `File ${filePath} not found`,
+            type: CodyResponseType.Error
+        }
+    }
+
+    if(!validate) {
+        validate = jsonContent => jsonContent;
+    }
+
+    const content = fs.readFileSync(filePath);
+
+    try {
+        return validate(JSON.parse(content.toString()));
+    } catch (e) {
+        return {
+            cody: `Failed to parse file ${filePath}. It contains invalid JSON`,
+            details: e.toString(),
+            type: CodyResponseType.Error
+        }
+    }
+}

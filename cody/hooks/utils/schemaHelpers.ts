@@ -1,4 +1,4 @@
-import {EngineConfig, JSONSchema, SchemaDefinitions} from "../types";
+import {ResolveConfig, JSONSchema, SchemaDefinitions} from "../types";
 import {aggregateStateName} from "./naming";
 import {nodeNameToPascalCase} from "../../src/utils/string";
 import {Node} from "../../src/board/graph";
@@ -6,7 +6,7 @@ import {parseJsonMetadata} from "../../src/utils/metadata";
 import {CodyResponse, isCodyError} from "../../src/general/response";
 import {isRootNamespace} from "./jsonschema";
 
-export const aggregateIdentifier = (aggregateType: string, config: EngineConfig): string | null => {
+export const aggregateIdentifier = (aggregateType: string, config: ResolveConfig): string | null => {
     if (config.aggregates[aggregateType]) {
         return config.aggregates[aggregateType].aggregateIdentifier;
     }
@@ -26,7 +26,7 @@ export const aggregateIdentifierType = (aggregateType: string, identifier: strin
     return defaultType;
 }
 
-export const aggregateIdentifierForCommand = (command: Node, config: EngineConfig, defs: SchemaDefinitions): string | null => {
+export const aggregateIdentifierForCommand = (command: Node, config: ResolveConfig, defs: SchemaDefinitions): string | null => {
     const cmdName = nodeNameToPascalCase(command);
 
     if(config.commands[cmdName]) {
@@ -37,7 +37,7 @@ export const aggregateIdentifierForCommand = (command: Node, config: EngineConfi
     return null;
 }
 
-export const aggregateTypeForCommand = (command: Node, config: EngineConfig, defs: SchemaDefinitions): string | null => {
+export const aggregateTypeForCommand = (command: Node, config: ResolveConfig, defs: SchemaDefinitions): string | null => {
     const cmdName = nodeNameToPascalCase(command);
 
     if(config.commands[cmdName]) {
@@ -47,7 +47,7 @@ export const aggregateTypeForCommand = (command: Node, config: EngineConfig, def
     return null;
 }
 
-export const queryPropertyType = (queryName: string, property: string, config: EngineConfig): string => {
+export const queryPropertyType = (queryName: string, property: string, config: ResolveConfig): string => {
     if(!config.queries.hasOwnProperty(queryName)) {
         return 'string'
     }

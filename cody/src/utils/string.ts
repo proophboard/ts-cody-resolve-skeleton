@@ -7,14 +7,14 @@ import {extractDocumentMetadata} from "../../hooks/utils/metadata";
 export const nodeNameToCamelCase = (node: Node | string): string => {
     const nodeName = typeof node === 'string'? node : node.getName();
 
-    const name = camelize(nodeName.split(' ').join('-'));
+    const name = camelize(nodeName.trim().split(' ').join('-'));
     return name.charAt(0).toLowerCase() + name.slice(1);
 }
 
 export const nodeNameToPascalCase = (node: Node | string): string => {
     const nodeName = typeof node === 'string'? node : node.getName();
 
-    const name = camelize(nodeName.split(' ').join('-'));
+    const name = camelize(nodeName.trim().split(' ').join('-'));
     return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
@@ -47,7 +47,7 @@ export const nodeNameToSnakeCase = (node: Node | string): string => {
         return '';
     }
 
-    let name = nodeName.split(' ').join('_').split('-').join('_');
+    let name = nodeName.trim().split(' ').join('_').split('-').join('_');
     name = name[0].toLowerCase() + name.slice(1).replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
     return name.split('__').join('_');
 }
@@ -59,6 +59,10 @@ export const snakeCaseToCamelCase = (str: string): string => {
 
     str = str.split('_').map(part => part.length > 0? part[0].toUpperCase() + part.slice(1) : '').join('');
     return str[0].toLowerCase() + str.slice(1);
+}
+
+export const nodeNameToConstName = (node: Node | string): string => {
+    return nodeNameToSnakeCase(node).toUpperCase();
 }
 
 export const lcWord = (word: string): string => {
