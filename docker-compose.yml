@@ -20,5 +20,6 @@ services:
     user: ${UID}
     ports:
       - 3322:3000
-    command: npm run watch
+      - 9229:9229
+    command: npm run debug
 

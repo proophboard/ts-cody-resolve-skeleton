@@ -7,6 +7,7 @@
   "scripts": {
     "start": "npm run build:live",
     "build": "tsc -p .",
+    "debug": "nodemon --legacy-watch 'src/**/*.ts' --legacy-watch 'hooks/*.ts' --legacy-watch 'hooks/**/*.ts' --legacy-watch 'codyconfig.ts' --exec \"node --inspect-brk=0.0.0.0:9229 --require ts-node/register src/index.ts\"",
     "watch": "nodemon --watch 'src/**/*.ts' --watch 'hooks/*.ts' --watch 'hooks/**/*.ts' --watch 'codyconfig.ts' --exec 'ts-node' src/index.ts",
     "prettier": "node_modules/.bin/prettier --single-quote --arrow-parens always --print-width 120 --tab-width 4 --write 'src/**/*.{ts,tsx}'",
     "tslint": "node_modules/.bin/tslint -c tslint.json 'src/**/*.{ts,tsx}'",
