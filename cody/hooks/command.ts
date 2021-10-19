@@ -9,7 +9,7 @@ import { getSingleTarget } from '../src/utils/node-traversing';
 import { createAggregateModuleIfNotExists } from './aggregate';
 import { writeFileSync } from '../src/utils/filesystem';
 import { refreshIndexFile, shouldIgnoreFile } from './utils/file';
-import { compileSchema } from './utils/jsonschema';
+import { COMPILE_OPTIONS, compileSchema } from './utils/jsonschema';
 
 export const onCommandHook: CodyHook<Context> = async (command: Node, ctx: Context): Promise<CodyResponse> => {
 
@@ -55,6 +55,7 @@ export const onCommandHook: CodyHook<Context> = async (command: Node, ctx: Conte
     const cmdFile = cmdDir + `/${cmdFilename}`;
 
     try {
+        // generate command
         const content = await compileSchema(metadata.schema, cmdName, cmdFile, defs, `export const ${nodeNameToSnakeCase(cmdName).toUpperCase()} = '${cmdName}'`);
 
         if (shouldIgnoreFile(cmdFile)) {
@@ -80,6 +81,51 @@ export const onCommandHook: CodyHook<Context> = async (command: Node, ctx: Conte
         if (isCodyError(refreshResult)) {
             return refreshResult;
         }
+
+        // generate command handler
+        const payloadType = cmdName + '. ' + cmdName;
+
+        const commandHandlerContent = `${COMPILE_OPTIONS.bannerComment}
+import { CommandHandler } from '@resolve-js/core';
+import { AggregateState, Command, CommandResult } from '@resolve-js/core/types/types/core';
+import ${cmdName} from '../commands';
+// @cody-ignore
+const commandHandler: CommandHandler = (state: AggregateState, command: Command & {payload: typeof ${payloadType}}): CommandResult => {
+
+    return {
+        type: '',
+        payload: {},
+    }
+}
+
+export default commandHandler;
+`;
+
+        const commandHandlerError = writeFileSync(ctx.feFolder + '/common/aggregates/' + nodeNameToPascalCase(aggregate) + '/handlers/' + cmdName + 'Handler.ts', commandHandlerContent);
+
+        if (commandHandlerError) {
+            return commandHandlerError;
+        }
+
+        // generate aggregate
+        let importStr = '';
+
+        const aggregateContent = `${COMPILE_OPTIONS.bannerComment}
+import { Aggregate } from '@resolve-js/core';
+${importStr}
+
+const aggregate: Aggregate = {
+}
+
+export default aggregate;
+`;
+
+        const aggregateError = writeFileSync(ctx.feFolder + '/common/aggregates/' + nodeNameToPascalCase(aggregate) + '.commands.ts', aggregateContent);
+
+        if (aggregateError) {
+            return aggregateError;
+        }
+
     } catch (reason) {
         return {
             cody: `I was not able to compile schema of command ${command.getName()}`,

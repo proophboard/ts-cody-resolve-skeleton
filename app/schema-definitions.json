@@ -1,6 +1,12 @@
 {
   "sourceMap": {
+    "/BuildingId": "/dist/model/values/BuildingId.ts"
   },
   "definitions": {
+    "BuildingId": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Building Id"
+    }
   }
 }
