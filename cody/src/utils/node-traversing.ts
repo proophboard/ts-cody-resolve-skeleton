@@ -69,6 +69,26 @@ export const getSingleSourceFromSyncedNodes = (node: Node, expectedType: NodeTyp
     }
 }
 
+export const getSingleTargetFromSyncedNodes = (node: Node, expectedType: NodeType, syncedNodes: NodeMap): Success | Error => {
+    const target = getSingleTarget(node, expectedType);
+
+    if(isCodyError(target)) {
+        return target;
+    }
+
+    const filteredNodes = syncedNodes.filter(otherNode => otherNode.getId() === target.getId());
+
+    if(filteredNodes.count() === 1) {
+        return filteredNodes.first();
+    }
+
+    return {
+        cody: `Tried to find target ${target.getId()} of type ${expectedType.toString()} in list of synced nodes. But it is not there.`,
+        details: `It's the target of node ${node.getName()}. Name of the source is ${target.getName()}. Try a reconnect to trigger sync again!`,
+        type: CodyResponseType.Error
+    }
+}
+
 export const getSourcesOfType = (node: Node, expectedType: NodeType, ignoreOthers: boolean = false, includeChildren: boolean = false, allowEmpty: boolean = false): List<Success> | Error => {
     let sources = node.getSources().filter(t => t.getType() === expectedType);
 

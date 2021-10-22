@@ -1,10 +1,10 @@
-import {CodyHook} from "../src/board/code";
-import {Context} from "./context";
-import {CodyResponse, CodyResponseType, isCodyError} from "../src/general/response";
-import {Node} from "../src/board/graph";
+import { CodyHook } from '../src/board/code';
+import { Context } from './context';
+import { CodyResponse, isCodyError } from '../src/general/response';
+import { Node } from '../src/board/graph';
 import { loadResolveConfig, upsertAggregateConfig } from './utils/config';
 import { extractAggregateMetadata } from './utils/metadata';
-import fs  from 'fs';
+import fs from 'fs';
 import { nodeNameToPascalCase } from '../src/utils/string';
 import { mkdirIfNotExistsSync, writeFileSync } from '../src/utils/filesystem';
 
@@ -23,16 +23,23 @@ export const onAggregateHook: CodyHook<Context> = async (aggregate: Node, ctx: C
 
     let successDetails = 'Checklist:\n\n';
 
+    const arDir = await createAggregateModuleIfNotExists(aggregate, ctx, true);
+
+    if(isCodyError(arDir)) {
+        return arDir;
+    }
+
     const configErr = upsertAggregateConfig(aggregate.getLink(), metadata, resolveConfig, ctx);
 
     if(isCodyError(configErr)) {
         return configErr;
     }
 
+    successDetails = successDetails + `✔️ Aggregate module ${arDir} prepared\n`;
+
     return {
-        cody: [`%cI'm skipping "${aggregate.getName()}" due missing implementation.`, 'color: #fb9f4b; font-weight: bold'],
-        details: [`%cIf you want me to handle ${aggregate.getName()}, implement the desired code please.`, 'color: #414141', 'background-color: rgba(251, 159, 75, 0.2)', 'color: #414141'],
-        type: CodyResponseType.Info
+        cody: `"${aggregate.getName()}" is add to the app.`,
+        details: ['%c'+successDetails, 'color: #73dd8e;font-weight: bold'],
     }
 }
 
@@ -63,13 +70,35 @@ export const createAggregateModuleIfNotExists = async (aggregate: Node, ctx: Con
         }
 
         if(!fs.existsSync(dir + '/index.ts')) {
-            const riErr = writeFileSync(dir + '/index.ts', `export default {}`);
+            const riErr = writeFileSync(dir + '/index.ts', `export {}`);
 
             if(riErr) {
                 return riErr;
             }
         }
     }
+
+    if(!fs.existsSync(aggregateDir + '/index.ts')) {
+        const riErr = writeFileSync(
+            aggregateDir + '/index.ts',
+            `import * as Reducers from './reducers'
+import * as Handlers from './handlers'
+import * as Events from './events'
+import * as Commands from './commands'
+
+export {
+    Reducers,
+    Handlers,
+    Events,
+    Commands
+}`
+        );
+
+        if(riErr) {
+            return riErr;
+        }
+    }
+
 
     const resolveConfig = loadResolveConfig(ctx);
 
@@ -95,7 +124,7 @@ export const createAggregateModuleIfNotExists = async (aggregate: Node, ctx: Con
 //     }
 //
 //     const modelIndexContent = `${importStr}
-// export default {
+// export {
 // ${exportStr}
 // }
 // `

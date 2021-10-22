@@ -68,13 +68,14 @@ export const shouldIgnoreFile = (filePath: string): boolean => {
 export const refreshIndexFile = (
     config: ResolveConfig,
     ctx: Context,
-    type: NodeType,
+    type: 'command' | 'event' | 'commandHandler',
     aggregateDir: string,
 ): CodyResponse | null => {
     let importString = '';
     let exportString = '';
     let list;
     let file = aggregateDir;
+    let suffix = '';
 
     switch (type) {
         case 'command':
@@ -85,19 +86,24 @@ export const refreshIndexFile = (
             list = Object.keys(config.events);
             file += '/events/index.ts';
             break;
+        case 'commandHandler':
+            list = Object.keys(config.commands);
+            file += '/handlers/index.ts';
+            suffix = 'Handler';
+            break;
         default:
             return null;
     }
 
     for (const name of list) {
-        importString = importString + `import * as ${name} from "./${name}";\n`;
-        exportString = exportString + `    ${name},\n`;
+        importString = importString + `import * as ${name + suffix} from "./${name + suffix}";\n`;
+        exportString = exportString + `    ${name + suffix},\n`;
     }
 
     const content = `${COMPILE_OPTIONS.bannerComment}
 ${importString}
 
-export default {
+export {
     ${exportString}
 }
 `;

@@ -4,7 +4,7 @@ import { CodyHook } from '../src/board/code';
 import { CodyResponse, CodyResponseType, isCodyError } from '../src/general/response';
 import { extractAggregateMetadata, extractCommandMetadata } from './utils/metadata';
 import { loadResolveConfig, loadSchemaDefinitions, upsertCommandConfig } from './utils/config';
-import { nodeNameToPascalCase, nodeNameToSnakeCase } from '../src/utils/string';
+import { lcWord, nodeNameToConstName, nodeNameToPascalCase, nodeNameToSnakeCase } from '../src/utils/string';
 import { getSingleTarget } from '../src/utils/node-traversing';
 import { createAggregateModuleIfNotExists } from './aggregate';
 import { writeFileSync } from '../src/utils/filesystem';
@@ -14,6 +14,7 @@ import { COMPILE_OPTIONS, compileSchema } from './utils/jsonschema';
 export const onCommandHook: CodyHook<Context> = async (command: Node, ctx: Context): Promise<CodyResponse> => {
 
     const cmdName = nodeNameToPascalCase(command);
+    const cmdHandlerName = cmdName + 'Handler';
     const cmdFilename = cmdName + '.ts';
     const metadata = extractCommandMetadata(command);
     const config = loadResolveConfig(ctx);
@@ -32,6 +33,7 @@ export const onCommandHook: CodyHook<Context> = async (command: Node, ctx: Conte
     }
 
     const aggregate = getSingleTarget(command, NodeType.aggregate);
+
     if (isCodyError(aggregate)) {
         return aggregate;
     }
@@ -41,6 +43,7 @@ export const onCommandHook: CodyHook<Context> = async (command: Node, ctx: Conte
         return aggregateMetadata;
     }
 
+    const aggregateName = nodeNameToPascalCase(aggregate);
     const aggregateType = nodeNameToPascalCase(aggregate);
 
     const aggregateDir = await createAggregateModuleIfNotExists(aggregate, ctx);
@@ -83,44 +86,58 @@ export const onCommandHook: CodyHook<Context> = async (command: Node, ctx: Conte
         }
 
         // generate command handler
-        const payloadType = cmdName + '. ' + cmdName;
+        const payloadType = cmdName + '.' + cmdName;
+
+        // const event = getSingleTargetFromSyncedNodes(aggregate, NodeType.event, ctx.syncedNodes);
+        //
+        // if (isCodyError(event)) {
+        //     return event;
+        // }
+        const event = 'TODO';
+
+        const evtName = nodeNameToPascalCase(event);
+        const evtType = evtName + '.' + nodeNameToConstName(evtName);
 
         const commandHandlerContent = `${COMPILE_OPTIONS.bannerComment}
 import { CommandHandler } from '@resolve-js/core';
 import { AggregateState, Command, CommandResult } from '@resolve-js/core/types/types/core';
-import ${cmdName} from '../commands';
+import {${cmdName}} from '../commands';
+import {${evtName}} from '../events';
 // @cody-ignore
-const commandHandler: CommandHandler = (state: AggregateState, command: Command & {payload: typeof ${payloadType}}): CommandResult => {
+export const commandHandler: CommandHandler = (state: AggregateState, command: Command & {payload: ${payloadType}}): CommandResult => {
 
     return {
-        type: '',
-        payload: {},
+        type: ${evtType},
+        payload: command.payload,
     }
 }
-
-export default commandHandler;
 `;
 
-        const commandHandlerError = writeFileSync(ctx.feFolder + '/common/aggregates/' + nodeNameToPascalCase(aggregate) + '/handlers/' + cmdName + 'Handler.ts', commandHandlerContent);
+        const commandHandlerError = writeFileSync(ctx.feFolder + '/common/aggregates/' + aggregateName + '/handlers/' + cmdHandlerName + '.ts', commandHandlerContent);
 
         if (commandHandlerError) {
             return commandHandlerError;
         }
 
+        const refreshHandlerResult = refreshIndexFile(config, ctx, 'commandHandler', aggregateDir);
+
+        if (isCodyError(refreshHandlerResult)) {
+            return refreshHandlerResult;
+        }
+
         // generate aggregate
-        let importStr = '';
+        let importStr = `import { Handlers } from './${aggregateName}';`;
 
         const aggregateContent = `${COMPILE_OPTIONS.bannerComment}
 import { Aggregate } from '@resolve-js/core';
 ${importStr}
 
-const aggregate: Aggregate = {
-}
-
-export default aggregate;
+export default {
+    ${lcWord(cmdName)}: Handlers.${cmdName}Handler.commandHandler
+} as Aggregate
 `;
 
-        const aggregateError = writeFileSync(ctx.feFolder + '/common/aggregates/' + nodeNameToPascalCase(aggregate) + '.commands.ts', aggregateContent);
+        const aggregateError = writeFileSync(ctx.feFolder + '/common/aggregates/' + aggregateName + '.commands.ts', aggregateContent);
 
         if (aggregateError) {
             return aggregateError;
